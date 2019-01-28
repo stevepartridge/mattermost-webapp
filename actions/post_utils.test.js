@@ -4,6 +4,7 @@
 import thunk from 'redux-thunk';
 import configureStore from 'redux-mock-store';
 
+import {receivedNewPost} from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import * as PostActionsUtils from 'actions/post_utils';
@@ -35,22 +36,8 @@ const POST_CREATED_TIME = Date.now();
 // This mocks the Date.now() function so it returns a constant value
 global.Date.now = jest.fn(() => POST_CREATED_TIME);
 
-const RECEIVED_POSTS = {
-    channelId: 'current_channel_id',
-    data: {order: [], posts: {new_post_id: {channel_id: 'current_channel_id', id: 'new_post_id', message: 'new message', type: '', user_id: 'some_user_id', create_at: POST_CREATED_TIME}}},
-    type: 'RECEIVED_POSTS',
-};
 const INCREASED_POST_VISIBILITY = {amount: 1, data: 'current_channel_id', type: 'INCREASE_POST_VISIBILITY'};
 const STOP_TYPING = {type: 'stop_typing', data: {id: 'current_channel_idundefined', now: POST_CREATED_TIME, userId: 'some_user_id'}};
-
-function getReceivedPosts(post) {
-    const receivedPosts = {...RECEIVED_POSTS};
-    if (post) {
-        receivedPosts.data.posts[post.id] = post;
-    }
-
-    return receivedPosts;
-}
 
 describe('actions/post_utils', () => {
     const latestPost = {
@@ -112,7 +99,7 @@ describe('actions/post_utils', () => {
             INCREASED_POST_VISIBILITY,
             {
                 meta: {batch: true},
-                payload: [getReceivedPosts(newPost), STOP_TYPING],
+                payload: [receivedNewPost(newPost), STOP_TYPING],
                 type: 'BATCHING_REDUCER.BATCH',
             },
         ]);
@@ -128,7 +115,7 @@ describe('actions/post_utils', () => {
             INCREASED_POST_VISIBILITY,
             {
                 meta: {batch: true},
-                payload: [getReceivedPosts(newPost), STOP_TYPING],
+                payload: [receivedNewPost(newPost), STOP_TYPING],
                 type: 'BATCHING_REDUCER.BATCH',
             },
         ]);

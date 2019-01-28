@@ -4,8 +4,9 @@
 import thunk from 'redux-thunk';
 import configureStore from 'redux-mock-store';
 
-import {Posts} from 'mattermost-redux/constants';
 import {SearchTypes} from 'mattermost-redux/action_types';
+import * as PostActions from 'mattermost-redux/actions/posts';
+import {Posts} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/post_actions';
 import {Constants, ActionTypes, RHSStates} from 'utils/constants';
@@ -22,6 +23,7 @@ jest.mock('mattermost-redux/actions/posts', () => ({
     unflagPost: (...args) => ({type: 'MOCK_UNFLAG_POST', args}),
     pinPost: (...args) => ({type: 'MOCK_PIN_POST', args}),
     unpinPost: (...args) => ({type: 'MOCK_UNPIN_POST', args}),
+    receivedNewPost: (...args) => ({type: 'MOCK_RECEIVED_NEW_POST', args}),
 }));
 
 jest.mock('actions/emoji_actions', () => ({
@@ -45,22 +47,8 @@ const POST_CREATED_TIME = Date.now();
 // This mocks the Date.now() function so it returns a constant value
 global.Date.now = jest.fn(() => POST_CREATED_TIME);
 
-const RECEIVED_POSTS = {
-    channelId: 'current_channel_id',
-    data: {order: [], posts: {new_post_id: {channel_id: 'current_channel_id', id: 'new_post_id', message: 'new message', type: '', user_id: 'some_user_id', create_at: POST_CREATED_TIME}}},
-    type: 'RECEIVED_POSTS',
-};
 const INCREASED_POST_VISIBILITY = {amount: 1, data: 'current_channel_id', type: 'INCREASE_POST_VISIBILITY'};
 const STOP_TYPING = {type: 'stop_typing', data: {id: 'current_channel_idundefined', now: POST_CREATED_TIME, userId: 'some_user_id'}};
-
-function getReceivedPosts(post) {
-    const receivedPosts = {...RECEIVED_POSTS};
-    if (post) {
-        receivedPosts.data.posts[post.id] = post;
-    }
-
-    return receivedPosts;
-}
 
 describe('Actions.Posts', () => {
     const latestPost = {
@@ -179,7 +167,7 @@ describe('Actions.Posts', () => {
             INCREASED_POST_VISIBILITY,
             {
                 meta: {batch: true},
-                payload: [getReceivedPosts(newPost), STOP_TYPING],
+                payload: [PostActions.receivedNewPost(newPost), STOP_TYPING],
                 type: 'BATCHING_REDUCER.BATCH',
             },
         ]);
